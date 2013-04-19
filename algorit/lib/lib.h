@@ -3,6 +3,7 @@
 #include <math.h>
 #include <stdint.h>
 #include <time.h>
+#include <unistd.h>
 
 /*+---------------------------------------------------------------+*/
 int Decodificador8x4(unsigned int entrada);				// declaro o decodificador8x4
@@ -66,9 +67,9 @@ int CPU(unsigned int i4bits)
 	else
 	{
 		Registrador8b.reset(i4bits);					// limpa o registrador da interrupcao
-		for(int i; i<10000000;i++);						// faz alguma coisa
-			printf("faz interrupcao numero %d !!!\n",i4bits);				
-			printf("pronto para proxima interacao\n\n");
+		usleep(200000);									// faz alguma coisa
+		printf("faz interrupcao numero %d !!!\n",i4bits);				
+		printf("pronto para proxima interacao\n\n");
 		return 1;										// retorna que a operacao foi realizada e esta pronto para a proxima
 	}
 	printf("+---------------------------------------------------------------+\n");
