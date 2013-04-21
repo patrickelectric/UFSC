@@ -7,6 +7,7 @@
 #include <string.h>
 
 /*+---------------------------------------------------------------+*/
+
 int Decodificador8x4(unsigned int entrada);				// declaro o decodificador8x4
 
 class Registrador8b										// declaro o registrador de 8 bits
@@ -19,12 +20,14 @@ class Registrador8b										// declaro o registrador de 8 bits
 
 Registrador8b Registrador8b;							// crio registrador
 
-void addInterrupt(int op);
-int NewInterrupt();
+void addInterrupt(int op);								// declaro a funcao que adiciona uma nova interrupcao 
+int NewInterrupt();										// ajuda o addInterrupt a adicionar uma interrupcao
 int controlador(unsigned int i4bits);					// declaro a controlador
+void printMemoria();									// funcao de debug que mostra o valor em binario
+
 /*+---------------------------------------------------------------+*/
 
-void printMemoria()
+void printMemoria()										
 {
 	printf("0b");
 	for(int i=8;i>0;i--)
@@ -37,6 +40,7 @@ void printMemoria()
 }
 
 /*+---------------------------------------------------------------+*/
+
 int Decodificador8x4(unsigned int entrada) 				// entrada pode ter o valor de 0 a 255, 0b00000000 a 0b11111111
 {
 	unsigned int i=0;  									// inicia a variavel para guardar os valores da divisão
@@ -48,23 +52,26 @@ int Decodificador8x4(unsigned int entrada) 				// entrada pode ter o valor de 0 
 	unsigned int valor=i+1;								// para não retornar a interrupção como zero e maxima como 7 add 1
 	return valor;										// retorna o valor da prioridade
 }
-/*+---------------------------------------------------------------+*/
-
 
 /*+---------------------------------------------------------------+*/
+
 void Registrador8b::reset(unsigned int ireset)			
 {
-	printf("memoria= "); printMemoria();					// mostra a memoria atual
+	printf("memoria= "); printMemoria();				// mostra a memoria atual
 	printf("deleta memoria : %d - %.0f\n",memoria,pow(2,ireset-1) );					// reseta a variavel do registrador 8º interrup = 2^7, assim por diante	
 	memoria=memoria-pow(2,ireset-1);
-	printf("memoria = "); printMemoria();					// mostra nova memoria do registrador
+	printf("memoria = "); printMemoria();				// mostra nova memoria do registrador
 }
+
+/*+---------------------------------------------------------------+*/
 
 unsigned int Registrador8b::add8Bit(unsigned int ibit)	
 {
 	memoria=ibit;										// salva os valores no registrador
 	return memoria;										// retorna valor da memoria caso precise 
 }
+
+
 /*+---------------------------------------------------------------+*/
 
 void addInterrupt(int op)
@@ -76,8 +83,8 @@ void addInterrupt(int op)
 	{
 		if ((Registrador8b.memoria & (unsigned int)pow(2,op-1))==0) 				// se o bit estiver livre add interrupcao
 		{
-			Registrador8b.memoria=Registrador8b.memoria+pow(2,op-1);
-			printf("memoria : "); printMemoria();
+			Registrador8b.memoria=Registrador8b.memoria+pow(2,op-1);				// salava o valor na memoria
+			printf("memoria : "); printMemoria();									// mostra memoria
 			/*
 			printf("start\n");
 			for(int i=0;i<=8;i++)
@@ -87,13 +94,13 @@ void addInterrupt(int op)
 	}
 }
 
-
 /*+---------------------------------------------------------------+*/
-char op;
+
 int NewInterrupt()
 {
+	char op;
 	RETORNO:
-	memset (&op, 0, sizeof (op) );
+	memset (&op, 0, sizeof (op) );												// simula a acionamento de uma interrupcao
 	printf("voce gostaria de adicionar uma nova interrupcao ?\n");
 	printf("(8,7,6,5,4,3,2,1) SIM / (N) NAO\n");
 	scanf ("%s",&op);
@@ -105,13 +112,10 @@ int NewInterrupt()
 			addInterrupt(atoi(&op));
 			goto RETORNO;
 		}
-
-
 }
-/*+---------------------------------------------------------------+*/
-
 
 /*+---------------------------------------------------------------+*/
+
 int controlador(unsigned int i4bits)
 {
 	printf("+---------------------------------------------------------------+\n");
@@ -132,6 +136,7 @@ int controlador(unsigned int i4bits)
 		return 1;										// retorna que a operacao foi realizada e esta pronto para a proxima
 	}
 }
+
 /*+---------------------------------------------------------------+*/
 
 

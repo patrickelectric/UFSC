@@ -9,7 +9,7 @@ int main ()
 	{										
 		NewInterrupt();
 		sleep(1);
-		controlador(Decodificador8x4(Registrador8b.memoria));         		// roda a controlador
+		controlador(Decodificador8x4(Registrador8b.memoria));         	// roda a controlador
 	}
 
 	return 0;
