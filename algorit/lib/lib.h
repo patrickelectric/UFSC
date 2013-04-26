@@ -6,37 +6,52 @@
 #include <unistd.h>
 #include <string.h>
 
+unsigned int entrada=0x00;											// adiciona os valores de interrupção
+unsigned int mascara=0x00;											// adiciona valores de mascara
+
 /*+---------------------------------------------------------------+*/
 
-int Decodificador8x4(unsigned int entrada);				// declaro o decodificador8x4
+int Decodificador8x4(unsigned int);						// declaro o decodificador8x4
 
 class Registrador8b										// declaro o registrador de 8 bits
 {
 	public:
 	unsigned int memoria;
-	void reset(unsigned int ireset);
-	unsigned int add8Bit(unsigned int ibit);
+	void reset(unsigned int);
+	unsigned int add8Bit(unsigned int);
 };
 
 Registrador8b Registrador8b;							// crio registrador
 
-void addInterrupt(int op);								// declaro a funcao que adiciona uma nova interrupcao 
-int NewInterrupt();										// ajuda o addInterrupt a adicionar uma interrupcao
-int controlador(unsigned int i4bits);					// declaro a controlador
+bool Mascara(unsigned int, unsigned int);
+void addInterrupt(int, unsigned int );					// declaro a funcao que adiciona uma nova interrupcao 
+void NewInterrupt();									// ajuda o addInterrupt a adicionar uma interrupcao
+void NewMascara();										// ajuda a adicionar um novo valor na mascara pelo usuario
+int controlador(unsigned int);							// declaro a controlador
 void printMemoria();									// funcao de debug que mostra o valor em binario
 
 /*+---------------------------------------------------------------+*/
 
-void printMemoria()										
+void printMemoria(unsigned int mem)										
 {
 	printf("0b");
 	for(int i=8;i>0;i--)
 	{
-		if((Registrador8b.memoria & (unsigned int)pow(2,i-1))!=0) printf("1");
+		if((mem & (unsigned int)pow(2,i-1))!=0) printf("1");
 		else
 			printf("0");
 	}
 	printf("\n");
+}
+
+/*+---------------------------------------------------------------+*/
+
+bool Mascara(unsigned int i, unsigned int mascara)
+{
+	if((unsigned int)pow(2,i-1) & mascara)
+		return false;
+	else
+		return true;
 }
 
 /*+---------------------------------------------------------------+*/
@@ -48,7 +63,7 @@ int Decodificador8x4(unsigned int entrada) 				// entrada pode ter o valor de 0 
 		for(i ; 1 != entrada >> i; i++);				// divide o valor da entrada ate descobrir o BMS(Bit Mais Significativo)
 			//printf("%x,%x\n",i+1,entrada >> i );			
 	else
-		return 0;										// caso não tenha nada na entrada não fazer nada
+		return 0;										// caso não tenha nada na entrada não fazer nad)
 	unsigned int valor=i+1;								// para não retornar a interrupção como zero e maxima como 7 add 1
 	return valor;										// retorna o valor da prioridade
 }
@@ -57,10 +72,10 @@ int Decodificador8x4(unsigned int entrada) 				// entrada pode ter o valor de 0 
 
 void Registrador8b::reset(unsigned int ireset)			
 {
-	printf("memoria= "); printMemoria();				// mostra a memoria atual
-	printf("deleta memoria : %d - %.0f\n",memoria,pow(2,ireset-1) );					// reseta a variavel do registrador 8º interrup = 2^7, assim por diante	
+	printf("memoria= "); printMemoria(memoria );							// mostra a memoria atual
+	printf("deleta memoria : %d - %.0f\n",memoria,pow(2,ireset-1) );		// reseta a variavel do registrador 8º interrup = 2^7, assim por diante	
 	memoria=memoria-pow(2,ireset-1);
-	printf("memoria = "); printMemoria();				// mostra nova memoria do registrador
+	printf("memoria = "); printMemoria( memoria );							// mostra nova memoria do registrador
 }
 
 /*+---------------------------------------------------------------+*/
@@ -74,17 +89,22 @@ unsigned int Registrador8b::add8Bit(unsigned int ibit)
 
 /*+---------------------------------------------------------------+*/
 
-void addInterrupt(int op)
+void addInterrupt(int op,unsigned int mascara)
 {
 	int memoriaTemp;
 	if((op)>= 9 || (op)<= 0)
 		printf("fora do valor !!\n");
 	else
 	{
+		if (Mascara(op,mascara))
+		{
+			printf("valor não ativado pela mascara!\n");
+			return;
+		}
 		if ((Registrador8b.memoria & (unsigned int)pow(2,op-1))==0) 				// se o bit estiver livre add interrupcao
 		{
-			Registrador8b.memoria=Registrador8b.memoria+pow(2,op-1);				// salava o valor na memoria
-			printf("memoria : "); printMemoria();									// mostra memoria
+			Registrador8b.memoria=Registrador8b.memoria+pow(2,op-1);				// salva o valor na memoria
+			printf("memoria : "); printMemoria(Registrador8b.memoria );									// mostra memoria
 			/*
 			printf("start\n");
 			for(int i=0;i<=8;i++)
@@ -96,7 +116,31 @@ void addInterrupt(int op)
 
 /*+---------------------------------------------------------------+*/
 
-int NewInterrupt()
+void NewMascara()
+{
+	char op[2];
+	RETORNO:
+	printf("mascara = "); printMemoria(mascara);
+	memset (&op, 0, sizeof (op) );												// simula a acionamento de um bit na mascara
+	printf("voce gostaria de modificar um bit na mascara ?\n");
+	printf("(8,7,6,5,4,3,2,1) ADD / (N) NAO / (-8,-7,-6,-5,-4,-3,-2,-1) REM\n");
+	scanf ("%s",op);
+	sleep(1);
+	if(op[0] == 'n' || op[0] == 'N')
+		printf("ok !\n");
+	else
+		{
+			if(op[0]!='-')
+				mascara=mascara+(unsigned int)pow(2,(int)atoi(&op[0])-1);
+			else
+				mascara=mascara-(unsigned int)pow(2,(int)atoi(&op[1])-1);
+			goto RETORNO;
+		}
+}
+
+/*+---------------------------------------------------------------+*/
+
+void NewInterrupt()
 {
 	char op;
 	RETORNO:
@@ -109,7 +153,7 @@ int NewInterrupt()
 		printf("ok !\n");
 	else
 		{
-			addInterrupt(atoi(&op));
+			addInterrupt(atoi(&op),mascara);
 			goto RETORNO;
 		}
 }
